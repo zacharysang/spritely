@@ -54,12 +54,17 @@ fn main() -> Result<(), Error> {
 
         Pixels::new(WIDTH, HEIGHT, surface_texture)?
     };
+
     let mut world = World::new(WIDTH, HEIGHT, BOX_SIZE);
 
     event_loop.run(move |event, _, control_flow| {
-        // Draw the current frame
+
+        // If the event passed into this loop iteration matches the RedrawRequested type, then redraw
         if let Event::RedrawRequested(_) = event {
+
+            // pass in the mutable pixel frame buffer to be written to for the newly requested rendering
             world.draw(pixels.get_frame());
+
             if pixels
                 .render()
                 .map_err(|e| error!("pixels.render() failed: {}", e))

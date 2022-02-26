@@ -28,6 +28,8 @@ impl World {
 
     /// Update the `World` internal state; bounce the box around the screen.
     pub fn update(&mut self) {
+
+        // bouncing behavior updates velocity
         if self.box_x <= 0 || self.box_x + self.box_size > self.width as i16 {
             self.velocity_x *= -1;
         }
@@ -35,8 +37,9 @@ impl World {
             self.velocity_y *= -1;
         }
 
-        self.box_x += self.velocity_x;// (self.box_x + self.velocity_x) % self.width;
-        self.box_y += self.velocity_y;// (self.box_y + self.velocity_y) % self.height;
+        // apply velocity to position
+        self.box_x += self.velocity_x;
+        self.box_y += self.velocity_y;
     }
 
     /// Draw the `World` state to the frame buffer.
@@ -47,10 +50,11 @@ impl World {
             let x = (i % self.width as usize) as i16;
             let y = (i / self.width as usize) as i16;
 
-            let inside_the_box = x >= self.box_x
-                && x < self.box_x + self.box_size
-                && y >= self.box_y
-                && y < self.box_y + self.box_size;
+            let inside_the_box = 
+                x >= self.box_x
+                    && x < self.box_x + self.box_size
+                    && y >= self.box_y
+                    && y < self.box_y + self.box_size;
 
             let rgba = if inside_the_box {
                 BOX_PIXEL
