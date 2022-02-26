@@ -9,35 +9,34 @@ use winit::event_loop::{ControlFlow, EventLoop};
 use winit::window::WindowBuilder;
 use winit_input_helper::WinitInputHelper;
 
+use crate::world::World;
+
+// root the world module at the root of the crate?
+mod world;
+
 const WIDTH: u32 = 320;
 const HEIGHT: u32 = 240;
-const BOX_SIZE: i16 = 64;
+const BOX_SIZE: i16 = 8;
 
-/// Representation of the application state. In this example, a box will bounce around the screen.
-struct World {
-    box_x: i16,
-    box_y: i16,
-    velocity_x: i16,
-    velocity_y: i16,
-}
-
-fn main() -> Result<(), Error> {
-
+fn init_logging() {
     let startTime = match SystemTime::now().duration_since(SystemTime::UNIX_EPOCH) {
         Ok(n) => format!("{}", n.as_secs()),
         Err(_) => format!("unknown-time")
     };
     let logFileName = format!("log-{}.log", startTime);
-    simple_logging::log_to_file(logFileName, LevelFilter::Info);
+    simple_logging::log_to_file(&logFileName, LevelFilter::Info);
 
-    info!("info log using a macro. has an arg: {}", 1);
+    info!("Opened log with filename: {}", logFileName);
+}
+
+fn main() -> Result<(), Error> {
+
+    init_logging();
 
     // below is all from https://github.com/parasyte/pixels/blob/94a2cc2dbdba493dcbec1e99c226a06a23088319/examples/minimal-winit/src/main.rs
     let event_loop = EventLoop::new();
     let mut input = WinitInputHelper::new();
     let window = {
-
-        // 'as' = casting
         let size = LogicalSize::new(WIDTH as f64, HEIGHT as f64);
 
         // lack of semicolon means that this block evaluates to the value of the belowv (and this value is assigned to 'window')
@@ -52,9 +51,10 @@ fn main() -> Result<(), Error> {
     let mut pixels = {
         let window_size = window.inner_size();
         let surface_texture = SurfaceTexture::new(window_size.width, window_size.height, &window);
+
         Pixels::new(WIDTH, HEIGHT, surface_texture)?
     };
-    let mut world = World::new();
+    let mut world = World::new(WIDTH, HEIGHT, BOX_SIZE);
 
     event_loop.run(move |event, _, control_flow| {
         // Draw the current frame
@@ -88,52 +88,4 @@ fn main() -> Result<(), Error> {
             window.request_redraw();
         }
     });
-}
-
-impl World {
-    /// Create a new `World` instance that can draw a moving box.
-    fn new() -> Self {
-        Self {
-            box_x: 24,
-            box_y: 16,
-            velocity_x: 1,
-            velocity_y: 1,
-        }
-    }
-
-    /// Update the `World` internal state; bounce the box around the screen.
-    fn update(&mut self) {
-        if self.box_x <= 0 || self.box_x + BOX_SIZE > WIDTH as i16 {
-            self.velocity_x *= -1;
-        }
-        if self.box_y <= 0 || self.box_y + BOX_SIZE > HEIGHT as i16 {
-            self.velocity_y *= -1;
-        }
-
-        self.box_x += self.velocity_x;
-        self.box_y += self.velocity_y;
-    }
-
-    /// Draw the `World` state to the frame buffer.
-    ///
-    /// Assumes the default texture format: `wgpu::TextureFormat::Rgba8UnormSrgb`
-    fn draw(&self, frame: &mut [u8]) {
-        for (i, pixel) in frame.chunks_exact_mut(4).enumerate() {
-            let x = (i % WIDTH as usize) as i16;
-            let y = (i / WIDTH as usize) as i16;
-
-            let inside_the_box = x >= self.box_x
-                && x < self.box_x + BOX_SIZE
-                && y >= self.box_y
-                && y < self.box_y + BOX_SIZE;
-
-            let rgba = if inside_the_box {
-                [0x5e, 0x48, 0xe8, 0xff]
-            } else {
-                [0x48, 0xb2, 0xe8, 0xff]
-            };
-
-            pixel.copy_from_slice(&rgba);
-        }
-    }
 }
