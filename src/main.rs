@@ -1,4 +1,7 @@
-use log::{info, trace, warn, error};
+use std::time::SystemTime;
+use std::fmt;
+
+use log::{info, trace, warn, error, LevelFilter};
 use pixels::{Error, Pixels, SurfaceTexture};
 use winit::dpi::LogicalSize;
 use winit::event::{Event, VirtualKeyCode};
@@ -19,11 +22,25 @@ struct World {
 }
 
 fn main() -> Result<(), Error> {
-    env_logger::init();
+
+    let startTime = match SystemTime::now().duration_since(SystemTime::UNIX_EPOCH) {
+        Ok(n) => format!("{}", n.as_secs()),
+        Err(_) => format!("unknown-time")
+    };
+    let logFileName = format!("log-{}.log", startTime);
+    simple_logging::log_to_file(logFileName, LevelFilter::Info);
+
+    info!("info log using a macro. has an arg: {}", 1);
+
+    // below is all from https://github.com/parasyte/pixels/blob/94a2cc2dbdba493dcbec1e99c226a06a23088319/examples/minimal-winit/src/main.rs
     let event_loop = EventLoop::new();
     let mut input = WinitInputHelper::new();
     let window = {
+
+        // 'as' = casting
         let size = LogicalSize::new(WIDTH as f64, HEIGHT as f64);
+
+        // lack of semicolon means that this block evaluates to the value of the belowv (and this value is assigned to 'window')
         WindowBuilder::new()
             .with_title("Hello Pixels")
             .with_inner_size(size)

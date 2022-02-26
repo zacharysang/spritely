@@ -1,2 +1,5 @@
 # Build directory for cargo: https://doc.rust-lang.org/cargo/guide/build-cache.html
 target
+
+# ignore log files
+*.log
