@@ -1,3 +1,5 @@
+use log::{info};
+
 const BOX_PIXEL: Pixel = Pixel {r: 0x5e, g: 0x48, b: 0xe8, a: 0xff};
 const BACKGROUND_PIXEL: Pixel = Pixel {r: 0x48, g: 0xb2, b: 0xe8, a: 0xff};
 
@@ -30,16 +32,17 @@ impl World {
     pub fn update(&mut self) {
 
         // bouncing behavior updates velocity
+        /*
         if self.box_x <= 0 || self.box_x + self.box_size > self.width as i16 {
             self.velocity_x *= -1;
         }
         if self.box_y <= 0 || self.box_y + self.box_size > self.height as i16 {
             self.velocity_y *= -1;
-        }
+        }*/
 
         // apply velocity to position
-        self.box_x += self.velocity_x;
-        self.box_y += self.velocity_y;
+        self.box_x = apply_bounds(0, (self.width as i16), self.velocity_x + self.box_x);
+        self.box_y = apply_bounds(0, (self.height as i16), self.velocity_y + self.box_y);
     }
 
     /// Draw the `World` state to the frame buffer.
@@ -64,6 +67,21 @@ impl World {
 
             pixel_buffer.copy_from_slice(&rgba.get_buffer());
         }
+    }
+}
+
+fn apply_bounds(min: i16, max: i16, val: i16) -> i16{
+    if (val < min)
+    {
+        max - val
+    }
+    else if (val > max)
+    {
+        min + (val-max)
+    }
+    else
+    {
+        val
     }
 }
 
