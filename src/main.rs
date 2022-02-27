@@ -9,7 +9,7 @@ use winit::event_loop::{ControlFlow, EventLoop};
 use winit::window::WindowBuilder;
 use winit_input_helper::WinitInputHelper;
 
-use crate::world::World;
+use crate::world::{World, Direction};
 
 // root the world module at the root of the crate?
 mod world;
@@ -77,6 +77,25 @@ fn main() -> Result<(), Error> {
 
         // Handle input events
         if input.update(&event) {
+
+            // key events
+            if input.key_pressed(VirtualKeyCode::Left) || input.key_pressed(VirtualKeyCode::A)
+            {
+                world.set_direction(Direction::Left);
+            }
+            else if input.key_pressed(VirtualKeyCode::Right) || input.key_pressed(VirtualKeyCode::D)
+            {
+                world.set_direction(Direction::Right);
+            }
+            else if input.key_pressed(VirtualKeyCode::Up) || input.key_pressed(VirtualKeyCode::W)
+            {
+                world.set_direction(Direction::Up);
+            }
+            else if input.key_pressed(VirtualKeyCode::Down) || input.key_pressed(VirtualKeyCode::S)
+            {
+                world.set_direction(Direction::Down);
+            }
+
             // Close events
             if input.key_pressed(VirtualKeyCode::Escape) || input.quit() {
                 *control_flow = ControlFlow::Exit;

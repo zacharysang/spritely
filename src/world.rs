@@ -1,7 +1,9 @@
 use log::{info};
 
-const BOX_PIXEL: Pixel = Pixel {r: 0x5e, g: 0x48, b: 0xe8, a: 0xff};
-const BACKGROUND_PIXEL: Pixel = Pixel {r: 0x48, g: 0xb2, b: 0xe8, a: 0xff};
+const BOX_COLOR: Rgba = Rgba {r: 0x5e, g: 0x48, b: 0xe8, a: 0xff};
+const BACKGROUND_COLOR: Rgba = Rgba {r: 0x48, g: 0xb2, b: 0xe8, a: 0xff};
+
+pub enum Direction { Up, Down, Left, Right }
 
 /// Representation of the application state. In this example, a box will bounce around the screen.
 pub struct World {
@@ -10,22 +12,24 @@ pub struct World {
     box_size: i16,
     width: u32,
     height: u32,
-    velocity_x: i16,
-    velocity_y: i16,
+    direction: Direction
 }
 
 impl World {
     /// Create a new `World` instance that can draw a moving box.
     pub fn new(width: u32, height: u32, box_size: i16) -> Self {
         Self {
-            box_x: 24,
-            box_y: 16,
+            box_x: 0,
+            box_y: 0,
             box_size: box_size,
             width: width,
             height: height,
-            velocity_x: 1,
-            velocity_y: 1
+            direction: Direction::Right
         }
+    }
+
+    pub fn set_direction(&mut self, new_direction: Direction) {
+        self.direction = new_direction;
     }
 
     /// Update the `World` internal state; bounce the box around the screen.
@@ -40,9 +44,17 @@ impl World {
             self.velocity_y *= -1;
         }*/
 
+        // get velocity vector based on current direction
+        let (velocity_x, velocity_y) = match &self.direction {
+            Direction::Down => (0, 1),
+            Direction::Left => (-1, 0),
+            Direction::Right => (1, 0),
+            Direction::Up => (0, -1),
+        };
+
         // apply velocity to position
-        self.box_x = apply_bounds(0, (self.width as i16), self.velocity_x + self.box_x);
-        self.box_y = apply_bounds(0, (self.height as i16), self.velocity_y + self.box_y);
+        self.box_x = apply_bounds(0, self.width as i16, (velocity_x) + self.box_x);
+        self.box_y = apply_bounds(0, self.height as i16, (velocity_y) + self.box_y);
     }
 
     /// Draw the `World` state to the frame buffer.
@@ -60,9 +72,9 @@ impl World {
                     && y < self.box_y + self.box_size;
 
             let rgba = if inside_the_box {
-                BOX_PIXEL
+                BOX_COLOR
             } else {
-                BACKGROUND_PIXEL
+                BACKGROUND_COLOR
             };
 
             pixel_buffer.copy_from_slice(&rgba.get_buffer());
@@ -71,11 +83,11 @@ impl World {
 }
 
 fn apply_bounds(min: i16, max: i16, val: i16) -> i16{
-    if (val < min)
+    if val < min
     {
         max - val
     }
-    else if (val > max)
+    else if val > max
     {
         min + (val-max)
     }
@@ -85,14 +97,14 @@ fn apply_bounds(min: i16, max: i16, val: i16) -> i16{
     }
 }
 
-struct Pixel {
+struct Rgba {
     r: u8,
     g: u8,
     b: u8,
     a: u8,
 }
 
-impl Pixel {
+impl Rgba {
     fn get_buffer(&self) -> [u8; 4] {
         [self.r, self.g, self.b, self.a]
     }
