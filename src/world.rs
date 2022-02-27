@@ -1,9 +1,7 @@
-use log::{info};
-
 const BOX_COLOR: Rgba = Rgba {r: 0x5e, g: 0x48, b: 0xe8, a: 0xff};
 const BACKGROUND_COLOR: Rgba = Rgba {r: 0x48, g: 0xb2, b: 0xe8, a: 0xff};
 
-pub enum Direction { Up, Down, Left, Right }
+pub enum Direction { Up, Down, Left, Right, None }
 
 /// Representation of the application state. In this example, a box will bounce around the screen.
 pub struct World {
@@ -50,11 +48,12 @@ impl World {
             Direction::Left => (-1, 0),
             Direction::Right => (1, 0),
             Direction::Up => (0, -1),
+            Direction::None => (0, 0)
         };
 
         // apply velocity to position
-        self.box_x = apply_bounds(0, self.width as i16, (velocity_x) + self.box_x);
-        self.box_y = apply_bounds(0, self.height as i16, (velocity_y) + self.box_y);
+        self.box_x = apply_bounds(0, self.width as i16, (velocity_x*self.box_size) + self.box_x);
+        self.box_y = apply_bounds(0, self.height as i16, (velocity_y*self.box_size) + self.box_y);
     }
 
     /// Draw the `World` state to the frame buffer.

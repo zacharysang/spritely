@@ -1,7 +1,6 @@
 use std::time::SystemTime;
-use std::fmt;
 
-use log::{info, trace, warn, error, LevelFilter};
+use log::{info, error, LevelFilter};
 use pixels::{Error, Pixels, SurfaceTexture};
 use winit::dpi::LogicalSize;
 use winit::event::{Event, VirtualKeyCode};
@@ -19,14 +18,16 @@ const HEIGHT: u32 = 240;
 const BOX_SIZE: i16 = 8;
 
 fn init_logging() {
-    let startTime = match SystemTime::now().duration_since(SystemTime::UNIX_EPOCH) {
+    let start_time = match SystemTime::now().duration_since(SystemTime::UNIX_EPOCH) {
         Ok(n) => format!("{}", n.as_secs()),
         Err(_) => format!("unknown-time")
     };
-    let logFileName = format!("log-{}.log", startTime);
-    simple_logging::log_to_file(&logFileName, LevelFilter::Info);
+    let log_file_name = format!("log-{}.log", start_time);
+    if let Err(e) = simple_logging::log_to_file(&log_file_name, LevelFilter::Info) {
+        panic!("Failed to start logging: {}", e)
+    }
 
-    info!("Opened log with filename: {}", logFileName);
+    info!("Opened log with filename: {}", log_file_name);
 }
 
 fn main() -> Result<(), Error> {
@@ -94,6 +95,11 @@ fn main() -> Result<(), Error> {
             else if input.key_pressed(VirtualKeyCode::Down) || input.key_pressed(VirtualKeyCode::S)
             {
                 world.set_direction(Direction::Down);
+            }
+            else
+            {
+                // if there are no direction inputs, don't move
+                world.set_direction(Direction::None);
             }
 
             // Close events
